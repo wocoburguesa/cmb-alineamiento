@@ -1,0 +1,12 @@
+#include <iostream>
+#include "aligner.h"
+#include "aligner_local.h"
+
+using namespace std;
+
+int main(int argc, char *argv[])
+{
+  GlobalAligner a("ACCGATG", "AACCGATGTCA", 1, 1);
+  a.print_matches();
+  return 0;
+}
