@@ -72,6 +72,15 @@ class GlobalAligner{
       return;
     }
     else{
+      /*      if(i < 0){
+	string new_u = match_u + ((i<=0) ? "_" : b.substr(i-1, 1));
+	traceback(i-1, j, new_u, match_d+"_");
+      }
+      else if(j < 0){
+	string new_d = match_d + ((j<=0) ? "_" : a.substr(j-1, 1));
+	traceback(i, j-1, match_u+"_", new_d);
+      }
+      else*/
       if(backtrack[i][j][0]){
 	string new_u = match_u + ((i<=0) ? "_" : b.substr(i-1, 1));
 	string new_d = match_d + ((j<=0) ? "_" : a.substr(j-1, 1));
@@ -84,7 +93,7 @@ class GlobalAligner{
       }
       else;
       if(backtrack[i][j][2]){
-	string new_d = match_u + ((j<=0) ? "_" : a.substr(j-1, 1));
+	string new_d = match_d + ((j<=0) ? "_" : a.substr(j-1, 1));
 	traceback(i, j-1, match_u+"_", new_d);
       }
       else;
@@ -114,5 +123,13 @@ class GlobalAligner{
   void print_matches(){
     for(int i = 0; i < matches.size(); ++i)
       cout << matches[i].first << endl << matches[i].second << endl << endl;
+  }
+  
+  int get_score(){
+    return dp[b.length()][a.length()];
+  }
+
+  vector< pair<string,string> > get_matches(){
+    return matches;
   }
 };
