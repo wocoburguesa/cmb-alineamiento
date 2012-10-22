@@ -1,0 +1,11 @@
+#include <vector>
+#include <algorithm>
+#include "aligner.h"
+
+using namespace std;
+
+class ProgressiveAligner{
+ private:
+  vector<string> seqs;
+
+};
