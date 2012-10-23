@@ -1,0 +1,8 @@
+graph progressive_out {
+
+NodeGCAGC_GGCGAGACG	[label="GCAGC_GGCGAGACG"]
+NodeGTATCTAGC_AGCTA	[label="GTATCTAGC_AGCTA"]
+NodeS0S1	[label="S0+S1"]
+NodeGCAGC_GGCGAGACG--NodeGTATCTAGC_AGCTA[label="0.4"]
+
+}

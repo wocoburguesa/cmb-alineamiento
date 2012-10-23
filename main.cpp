@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
   else;
   ProgAligner a(seqs, show_matrices);
   a.run();
-  a.print_matches();
+  //  a.print_matches();
+  //a.make_dot_file();
   return 0;
 }

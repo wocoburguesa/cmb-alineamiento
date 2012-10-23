@@ -1,6 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include "aligner.h"
 
 #define INF 0xffffffff
@@ -12,11 +13,20 @@ class ProgAligner{
   vector<string> seqs;
   vector<string> matches;
   bool print_matrices;
+  ofstream out;
 
  public:
   ProgAligner(vector<string> input, bool print){
+    out.open("grafo.dot");
+    out << "graph progressive_out {"  << endl << endl;
     seqs = input;
     print_matrices = print;
+  }
+
+  ~ProgAligner(){
+    out << endl << "}" << endl;
+    out.close();
+    delete this;
   }
 
   void fix_lengths(){
@@ -112,7 +122,19 @@ class ProgAligner{
       if(aux[idx_i].second != "" && aux[idx_j].second != ""){
 	GlobalAligner aligner(aux[idx_i].second, aux[idx_j].second, 1, 1);
 	matches.push_back(aligner.get_matches()[0].first);
+	write_node(aligner.get_matches()[0].first, aligner.get_matches()[0].first);
 	matches.push_back(aligner.get_matches()[0].second);
+	write_node(aligner.get_matches()[0].second, aligner.get_matches()[0].second);
+	stringstream new_node_id;
+	stringstream new_node_label;
+	string id, label;
+	new_node_id << 'S' << idx_i << 'S' << idx_j;
+	new_node_label << 'S' << idx_i << '+' << 'S' << idx_j;
+	new_node_id >> id;
+	new_node_label >> label;
+	write_node(id, label);
+	write_edge(aligner.get_matches()[0].first, aligner.get_matches()[0].second,
+		   dm[idx_i][idx_j]);
       }
       else if(aux[idx_i].second != "")
 	matches.push_back(aux[idx_i].second);
@@ -159,8 +181,19 @@ class ProgAligner{
  
 
   void make_dot_file(){
-    ifstream in = open("grafo.dot");
-    in << "hola"  << endl;
-    in.close();
+    ofstream out("grafo.dot");
+    out << "graph progressive_out {"  << endl << endl;
+    for(int i = 0; i < matches.size(); ++i)
+      out << "Node" << i+1 << "\t[label=\"" <<  matches[i] << "\"]" << endl;
+    out << endl << "}" << endl;
+    out.close();
+  }
+
+  void write_node(string id, string label){
+    out << "Node" << id << "\t[label=\"" <<  label << "\"]" << endl;    
+  }
+
+  void write_edge(string node_a, string node_b, float weight){
+    out << "Node" << node_a << "--" << "Node" << node_b << "[label=\"" << weight <<  "\"]" << endl;    
   }
 };
