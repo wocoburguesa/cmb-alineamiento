@@ -91,9 +91,22 @@ class ProgAligner{
     vector< vector<float> > dm = get_distance_matrix(seqs);
     vector< vector<float> > adm = get_avg_distance_matrix(dm);
 
+    set<string, string> labels;
+    set< vector<float> > matrix;
+
     vector< pair< vector<float>, string > > aux;
-    for(int i = 0; i < dm.size(); ++i)
+    for(int i = 0; i < dm.size(); ++i){
       aux.push_back(pair< vector<float>, string >(dm[i], seqs[i]));
+
+      stringstream in;
+      string label;
+      in << "S" << i;
+      in >> label;
+      labels[label] = seqs[i];
+
+      vector<int> buff;
+      matrix[label] = buff;
+    }
 
     while(dm.size() > 2){
       if(print_matrices){
@@ -122,8 +135,11 @@ class ProgAligner{
       if(aux[idx_i].second != "" && aux[idx_j].second != ""){
 	GlobalAligner aligner(aux[idx_i].second, aux[idx_j].second, 1, 1);
 	matches.push_back(aligner.get_matches()[0].first);
+
 	write_node(aligner.get_matches()[0].first, aligner.get_matches()[0].first);
+
 	matches.push_back(aligner.get_matches()[0].second);
+
 	write_node(aligner.get_matches()[0].second, aligner.get_matches()[0].second);
 	stringstream new_node_id;
 	stringstream new_node_label;
