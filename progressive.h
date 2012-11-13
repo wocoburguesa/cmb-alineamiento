@@ -1,4 +1,6 @@
 #include <vector>
+#include <set>
+#include <map>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -12,6 +14,7 @@ class ProgAligner{
  private:
   vector<string> seqs;
   vector<string> matches;
+  map<string, vector< pair<string, float> > > matrix;
   bool print_matrices;
   ofstream out;
 
@@ -91,20 +94,20 @@ class ProgAligner{
     vector< vector<float> > dm = get_distance_matrix(seqs);
     vector< vector<float> > adm = get_avg_distance_matrix(dm);
 
-    set<string, string> labels;
-    set< vector<float> > matrix;
+    map<string, string> labels;
+    //    map<string, vector< pair<string, float> > > matrix;
 
     vector< pair< vector<float>, string > > aux;
     for(int i = 0; i < dm.size(); ++i){
-      aux.push_back(pair< vector<float>, string >(dm[i], seqs[i]));
-
       stringstream in;
       string label;
       in << "S" << i;
       in >> label;
       labels[label] = seqs[i];
 
-      vector<int> buff;
+      aux.push_back(pair< vector<float>, string >(dm[i], label));
+
+      vector< pair<string, float> > buff;
       matrix[label] = buff;
     }
 
@@ -132,31 +135,40 @@ class ProgAligner{
 	    idx_j = j;
 	  }
 
-      if(aux[idx_i].second != "" && aux[idx_j].second != ""){
-	GlobalAligner aligner(aux[idx_i].second, aux[idx_j].second, 1, 1);
-	matches.push_back(aligner.get_matches()[0].first);
+      stringstream new_label;
+      string new_label_s;
+      new_label << "U" << aux[idx_i].second << aux[idx_j].second;
+      new_label >> new_label_s;
 
-	write_node(aligner.get_matches()[0].first, aligner.get_matches()[0].first);
-
-	matches.push_back(aligner.get_matches()[0].second);
-
-	write_node(aligner.get_matches()[0].second, aligner.get_matches()[0].second);
-	stringstream new_node_id;
-	stringstream new_node_label;
-	string id, label;
-	new_node_id << 'S' << idx_i << 'S' << idx_j;
-	new_node_label << 'S' << idx_i << '+' << 'S' << idx_j;
-	new_node_id >> id;
-	new_node_label >> label;
-	write_node(id, label);
-	write_edge(aligner.get_matches()[0].first, aligner.get_matches()[0].second,
-		   dm[idx_i][idx_j]);
-      }
-      else if(aux[idx_i].second != "")
-	matches.push_back(aux[idx_i].second);
-      else if(aux[idx_j].second != "")
-	matches.push_back(aux[idx_j].second);
+      vector< pair<string, float> > new_distances;
+	
+      float fu = 0, gu = 0, fu1 = 0, fu2 = 0;
+	
+      for(int i = 0; i < dm.size(); ++i){
+	if(i != idx_i)
+	  fu1 += dm[idx_i][i];
 	else;
+	if(i != idx_j)
+	  fu2 += dm[idx_j][i];
+      }
+      fu = (0.5f)*dm[idx_i][idx_j] + (0.5f)*(1.0f/((float)dm.size()-2.0f))*(fu1 - fu2);
+      gu = dm[idx_i][idx_j] - fu;
+
+      new_distances.push_back(pair<string, float>(aux[idx_i].second, fu));
+      new_distances.push_back(pair<string, float>(aux[idx_j].second, gu));
+	
+      matrix[new_label_s] = new_distances;
+
+      if(aux[idx_i].second[0] != 'U' && aux[idx_j].second[0] != 'U'){
+	GlobalAligner aligner(labels[aux[idx_i].second], labels[aux[idx_j].second], 1, 1);
+	matches.push_back(aligner.get_matches()[0].first);
+	matches.push_back(aligner.get_matches()[0].second);
+      }
+      else if(aux[idx_i].second[0] != 'U')
+	matches.push_back(labels[aux[idx_i].second]);
+      else if(aux[idx_j].second[0] != 'U')
+	matches.push_back(labels[aux[idx_j].second]);
+      else;
       
       vector<float> new_;
 
@@ -164,7 +176,7 @@ class ProgAligner{
 	new_.push_back((1.0f/2.0f)*
 		      (dm[idx_i][i] + dm[idx_j][i] + dm[idx_i][idx_j]));
       }
-      new_.push_back(INF);
+      new_.push_back(0); // ESTO ERA INF, revisar bien por qué funciona así y si está bien
 
       aux.erase(aux.begin()+idx_i);
       aux.erase(aux.begin()+idx_j-1);
@@ -179,7 +191,7 @@ class ProgAligner{
 	dm[i].push_back(new_[i]);
       }
       dm.push_back(new_);
-      aux.push_back(pair< vector<float>, string >(new_, ""));
+      aux.push_back(pair< vector<float>, string >(new_, new_label_s));
       
       adm = get_avg_distance_matrix(dm);
     }
@@ -188,6 +200,9 @@ class ProgAligner{
 
     for(int i = 0; i < matches.size(); ++i)
       fix_lengths();
+
+    print_tree();
+    write_tree();
   }
 
   void print_matches(){
@@ -203,6 +218,29 @@ class ProgAligner{
       out << "Node" << i+1 << "\t[label=\"" <<  matches[i] << "\"]" << endl;
     out << endl << "}" << endl;
     out.close();
+  }
+
+  void print_tree(){
+    map<string, vector< pair<string, float> > >::iterator it;
+    for(it = matrix.begin(); it != matrix.end(); ++it){
+      cout << (*it).first << ": ";
+      for(int i = 0; i < (*it).second.size(); ++i)
+	cout << "( " << (*it).second[i].first << ", " << (*it).second[i].second << ")  ";
+      cout << endl;
+    }
+  }
+
+  void write_tree(){
+    map<string, vector< pair<string, float> > >::iterator it;
+    for(it = matrix.begin(); it != matrix.end(); ++it){
+      write_node((*it).first, (*it).first);
+    }
+
+    for(it = matrix.begin(); it != matrix.end(); ++it){
+      for(int i = 0; i < (*it).second.size(); ++i)
+	write_edge((*it).first, (*it).second[i].first, (*it).second[i].second);
+    }
+
   }
 
   void write_node(string id, string label){

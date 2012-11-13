@@ -1,8 +1,22 @@
 graph progressive_out {
 
-NodeGCAGC_GGCGAGACG	[label="GCAGC_GGCGAGACG"]
-NodeGTATCTAGC_AGCTA	[label="GTATCTAGC_AGCTA"]
-NodeS0S1	[label="S0+S1"]
-NodeGCAGC_GGCGAGACG--NodeGTATCTAGC_AGCTA[label="0.4"]
+NodeS0	[label="S0"]
+NodeS1	[label="S1"]
+NodeS2	[label="S2"]
+NodeS3	[label="S3"]
+NodeS4	[label="S4"]
+NodeS5	[label="S5"]
+NodeUS0US3S5	[label="US0US3S5"]
+NodeUS1S4	[label="US1S4"]
+NodeUS2US1S4	[label="US2US1S4"]
+NodeUS3S5	[label="US3S5"]
+NodeUS0US3S5--NodeS0[label="0.0336805"]
+NodeUS0US3S5--NodeUS3S5[label="0.407229"]
+NodeUS1S4--NodeS1[label="0.0239583"]
+NodeUS1S4--NodeS4[label="-0.0239583"]
+NodeUS2US1S4--NodeS2[label="0.0282828"]
+NodeUS2US1S4--NodeUS1S4[label="-0.0282828"]
+NodeUS3S5--NodeS3[label="0.15827"]
+NodeUS3S5--NodeS5[label="0.023548"]
 
 }
